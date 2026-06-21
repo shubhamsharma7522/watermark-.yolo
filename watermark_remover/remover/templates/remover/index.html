@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watermark Remover</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#f8f9fb;color:#1a1a2e;margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem 1rem}
+.card-main{background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);max-width:560px;width:100%;padding:2.5rem 2rem;border:1px solid #eee}
+h1{font-size:1.5rem;font-weight:700;text-align:center;margin-bottom:1.75rem}
+h1 i{color:#6366f1;margin-right:.5rem}
+
+/* Drop zone */
+.drop-zone{border:2px dashed #d1d5db;border-radius:12px;padding:2.5rem 1.5rem;text-align:center;cursor:pointer;transition:all .2s;background:#fafbfc}
+.drop-zone:hover,.drop-zone.drag-over{border-color:#6366f1;background:#f0f0ff}
+.drop-zone .icon{font-size:2.5rem;color:#6366f1;margin-bottom:.5rem}
+.drop-zone p{margin:0;color:#6b7280;font-size:.9rem}
+.drop-zone .choose-text{color:#6366f1;font-weight:600;text-decoration:underline;cursor:pointer}
+
+/* Preview inside drop zone */
+.preview-wrapper{position:relative;display:none}
+.preview-wrapper img{width:100%;max-height:240px;object-fit:contain;border-radius:8px}
+.preview-wrapper .btn-change{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:6px;font-size:.75rem;padding:4px 10px;cursor:pointer}
+
+/* Buttons */
+.btn-process{background:#6366f1;color:#fff;border:none;border-radius:10px;padding:12px;font-size:.95rem;font-weight:600;width:100%;margin-top:1.25rem;transition:background .2s}
+.btn-process:hover:not(:disabled){background:#4f46e5;color:#fff}
+.btn-process:disabled{opacity:.45;cursor:not-allowed;color:#fff}
+.btn-download{background:#10b981;color:#fff;border:none;border-radius:10px;padding:12px;font-size:.95rem;font-weight:600;width:100%;margin-top:1rem;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;transition:background .2s}
+.btn-download:hover{background:#059669;color:#fff}
+
+/* Spinner overlay */
+.spinner-overlay{display:none;text-align:center;padding:2rem 0}
+.spinner-overlay .spinner-border{width:2.5rem;height:2.5rem;color:#6366f1}
+.spinner-overlay p{margin-top:.75rem;color:#6b7280;font-size:.9rem}
+
+/* Result images */
+.result-section{display:none;margin-top:1.5rem}
+.result-label{font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:#9ca3af;margin-bottom:.4rem}
+.result-img{width:100%;border-radius:10px;border:1px solid #eee;margin-bottom:1.25rem}
+.divider{text-align:center;color:#d1d5db;font-size:1.2rem;margin:.25rem 0}
+
+/* Error */
+.error-msg{background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;font-size:.85rem;margin-top:1rem;display:none}
+
+/* New upload */
+.btn-new{background:transparent;border:1px solid #d1d5db;border-radius:10px;padding:10px;font-size:.85rem;font-weight:500;width:100%;margin-top:.75rem;color:#6b7280;cursor:pointer;transition:all .2s}
+.btn-new:hover{border-color:#6366f1;color:#6366f1}
+</style>
+</head>
+<body>
+
+<div class="card-main">
+  <h1><i class="bi bi-droplet-fill"></i>Watermark Remover</h1>
+
+  <!-- Upload Section -->
+  <div id="upload-section">
+    <div class="drop-zone" id="drop-zone">
+      <div id="drop-content">
+        <div class="icon"><i class="bi bi-cloud-arrow-up"></i></div>
+        <p>Drag &amp; drop your image here</p>
+        <p class="mt-1">or <span class="choose-text">choose a file</span></p>
+      </div>
+      <div class="preview-wrapper" id="preview-wrapper">
+        <img id="preview-img" alt="Preview">
+        <button class="btn-change" id="btn-change" type="button">Change</button>
+      </div>
+      <input type="file" id="file-input" accept="image/*" hidden>
+    </div>
+
+    <button class="btn btn-process" id="btn-process" disabled>
+      <i class="bi bi-magic me-2"></i>Remove Watermark
+    </button>
+
+    <div class="error-msg" id="error-msg"></div>
+  </div>
+
+  <!-- Spinner -->
+  <div class="spinner-overlay" id="spinner">
+    <div class="spinner-border" role="status"></div>
+    <p>Removing watermark...</p>
+  </div>
+
+  <!-- Results -->
+  <div class="result-section" id="results">
+    <div>
+      <div class="result-label">Original</div>
+      <img id="img-original" class="result-img" alt="Original">
+    </div>
+    <div class="divider"><i class="bi bi-arrow-down"></i></div>
+    <div>
+      <div class="result-label">Watermark Removed</div>
+      <img id="img-cleaned" class="result-img" alt="Cleaned">
+    </div>
+    <a id="btn-download" class="btn-download" href="#" download>
+      <i class="bi bi-download me-2"></i>Download Clean Image
+    </a>
+    <button class="btn-new" id="btn-new" type="button">
+      <i class="bi bi-plus-circle me-1"></i>Process Another Image
+    </button>
+  </div>
+</div>
+
+<script>
+const dropZone=document.getElementById('drop-zone'),
+  dropContent=document.getElementById('drop-content'),
+  previewWrapper=document.getElementById('preview-wrapper'),
+  previewImg=document.getElementById('preview-img'),
+  fileInput=document.getElementById('file-input'),
+  btnChange=document.getElementById('btn-change'),
+  btnProcess=document.getElementById('btn-process'),
+  spinner=document.getElementById('spinner'),
+  uploadSection=document.getElementById('upload-section'),
+  results=document.getElementById('results'),
+  errorMsg=document.getElementById('error-msg'),
+  imgOriginal=document.getElementById('img-original'),
+  imgCleaned=document.getElementById('img-cleaned'),
+  btnDownload=document.getElementById('btn-download'),
+  btnNew=document.getElementById('btn-new');
+
+let selectedFile=null;
+
+dropZone.addEventListener('click',e=>{if(!e.target.closest('#btn-change'))fileInput.click()});
+dropZone.addEventListener('dragover',e=>{e.preventDefault();dropZone.classList.add('drag-over')});
+dropZone.addEventListener('dragleave',()=>dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop',e=>{e.preventDefault();dropZone.classList.remove('drag-over');if(e.dataTransfer.files.length)setFile(e.dataTransfer.files[0])});
+fileInput.addEventListener('change',()=>{if(fileInput.files.length)setFile(fileInput.files[0])});
+btnChange.addEventListener('click',e=>{e.stopPropagation();resetPreview();fileInput.click()});
+
+function setFile(f){
+  if(f.size>10*1024*1024){showError('File too large. Max 10 MB.');return}
+  selectedFile=f;
+  const r=new FileReader();
+  r.onload=e=>{previewImg.src=e.target.result;dropContent.style.display='none';previewWrapper.style.display='block';btnProcess.disabled=false;hideError()};
+  r.readAsDataURL(f);
+}
+function resetPreview(){selectedFile=null;previewImg.src='';dropContent.style.display='';previewWrapper.style.display='none';btnProcess.disabled=true;fileInput.value=''}
+function showError(m){errorMsg.textContent=m;errorMsg.style.display='block'}
+function hideError(){errorMsg.style.display='none'}
+
+btnProcess.addEventListener('click',async()=>{
+  if(!selectedFile)return;
+  hideError();
+  uploadSection.style.display='none';
+  spinner.style.display='block';
+  const fd=new FormData();
+  fd.append('image',selectedFile);
+  try{
+    const res=await fetch('/api/upload/',{method:'POST',body:fd});
+    const data=await res.json();
+    if(!res.ok){spinner.style.display='none';uploadSection.style.display='block';showError(data.error||'Processing failed');return}
+    spinner.style.display='none';
+    imgOriginal.src=data.original;
+    imgCleaned.src=data.cleaned;
+    btnDownload.href=data.cleaned;
+    results.style.display='block';
+  }catch(e){
+    spinner.style.display='none';uploadSection.style.display='block';showError('Network error. Please try again.');
+  }
+});
+
+btnNew.addEventListener('click',()=>{results.style.display='none';uploadSection.style.display='block';resetPreview()});
+</script>
+</body>
+</html>
