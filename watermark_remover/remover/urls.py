@@ -5,5 +5,5 @@ app_name = "remover"
 
 urlpatterns = [
     path("", views.index, name="index"),
-    path("api/upload/", views.upload_api, name="upload_api"),
+    path("api/upload/", views.upload, name="upload_api"),
 ]
