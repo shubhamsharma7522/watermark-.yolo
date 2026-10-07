@@ -1,8 +1,8 @@
-from django.test import TestCase, Client
+from django.test import SimpleTestCase, Client
 from django.urls import reverse
 
 
-class RemoverViewTests(TestCase):
+class RemoverViewTests(SimpleTestCase):
     """Basic smoke tests for the remover app views."""
 
     def setUp(self):
@@ -12,7 +12,7 @@ class RemoverViewTests(TestCase):
         """Homepage loads successfully."""
         response = self.client.get(reverse("remover:index"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "WatermarkAI")
+        self.assertContains(response, "Watermark Remover")
 
     def test_upload_api_get_rejected(self):
         """GET requests to the upload API are rejected."""
